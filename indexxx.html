@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificator de Sarcini</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff; /* Fundal deschis cu nuanță albastră */
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff; /* Fundal alb pentru zona principală */
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border: 1px solid #b0c4de; /* Bordură gri-albastră */
+        }
+        h1 {
+            font-size: 28px;
+            color: #4682b4; /* Albastru de oțel pentru titlu */
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #87cefa, #4682b4); /* Gradient pentru fundal titlu */
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid #4682b4; /* Bordură albastră pentru formular */
+            border-radius: 8px;
+            background-color: #e6f7ff; /* Fundal albastru deschis pentru formular */
+        }
+        input, textarea {
+            margin: 10px 0;
+            padding: 12px;
+            width: 100%;
+            max-width: 600px;
+            border: 1px solid #4682b4; /* Bordură albastră pentru câmpuri */
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            background-color: #4682b4; /* Culoare albastră pentru butoane */
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #4169e1; /* Albastru mai închis pentru hover */
+        }
+        .task {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #4682b4; /* Bordură albastră pentru sarcini */
+            border-radius: 8px;
+            background-color: #ffffff; /* Fundal alb pentru sarcini */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .task p {
+            margin: 5px 0;
+        }
+        .task button {
+            margin: 5px;
+            background-color: #4682b4; /* Culoare albastră pentru butoane sarcini */
+        }
+        .task .delete-button {
+            background-color: #dc3545; /* Culoare roșie pentru butonul de ștergere */
+        }
+        .task .delete-button:hover {
+            background-color: #c82333; /* Roșu închis pentru hover */
+        }
+        .task .share-button {
+            background-color: #28a745; /* Culoare verde pentru butonul de partajare */
+        }
+        .task .share-button:hover {
+            background-color: #218838; /* Verde închis pentru hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Planificator de Sarcini</h1>
+        
+        <form id="taskForm">
+            <input type="text" id="taskName" name="taskName" placeholder="Nume Sarcină" required>
+            <textarea id="taskDescription" name="taskDescription" placeholder="Descriere Sarcină" rows="4" required></textarea>
+            <button type="submit">Adaugă Sarcină</button>
+        </form>
+        
+        <div id="tasks"></div>
+    </div>
+
+    <script>
+        // Listă pentru a stoca sarcinile
+        const tasks = [];
+
+        function createTaskElement(task) {
+            return `
+                <div class="task" data-id="${task.id}">
+                    <p><strong>Sarcină:</strong> ${task.name}</p>
+                    <p><strong>Descriere:</strong> ${task.description}</p>
+                    <button class="delete-button" onclick="deleteTask('${task.id}')">Ștergere</button>
+                    <button class="share-button" onclick="saveAndShareTask('${task.id}')">Salvează și Partajează</button>
+                </div>
+            `;
+        }
+
+        function addTask(task) {
+            tasks.push(task);
+            const taskHtml = createTaskElement(task);
+            document.getElementById('tasks').innerHTML += taskHtml;
+        }
+
+        document.getElementById('taskForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const taskName = document.getElementById('taskName').value;
+            const taskDescription = document.getElementById('taskDescription').value;
+
+            const task = {
+                id: new Date().getTime().toString(),
+                name: taskName,
+                description: taskDescription
+            };
+
+            addTask(task);
+            document.getElementById('taskForm').reset();
+        });
+
+        function deleteTask(taskId) {
+            const taskIndex = tasks.findIndex(task => task.id === taskId);
+            if (taskIndex !== -1) {
+                tasks.splice(taskIndex, 1);
+                const taskElement = document.querySelector(`.task[data-id="${taskId}"]`);
+                if (taskElement) {
+                    taskElement.remove();
+                }
+            }
+        }
+
+        function saveAndShareTask(taskId) {
+            const task = tasks.find(task => task.id === taskId);
+            if (!task) return;
+
+            const text = `
+Sarcină: ${task.name}
+Descriere:
+${task.description}
+
+-- Planificator de Sarcini
+            `;
+
+            // Crearea fișierului text
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            // Crearea unui link temporar pentru descărcare
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Sarcina_${task.name}.txt`;
+            link.click();
+            
+            // Eliberarea URL-ului blob
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
